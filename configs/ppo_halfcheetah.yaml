@@ -1,1 +1,10 @@
-stupid yaml file
+env_name: "HalfCheetah-v4"
+total_timesteps: 1_000_000
+num_steps: 2048        # Rollout length per update
+batch_size: 64         # Mini-batch size for PPO epochs
+ppo_epochs: 10
+learning_rate: 3.0e-4
+gamma: 0.99            # Discount factor
+gae_lambda: 0.95       # GAE smoothing parameter
+clip_eps: 0.2          # PPO clipping parameter
+ent_coef: 0.0          # Entropy bonus (often 0.0 for MuJoCo continuous control)

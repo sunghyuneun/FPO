@@ -10,30 +10,30 @@ from collections import namedtuple
 
 import gymnasium
 
-env = gymnasium.make('CartPole-v1')
+env = gymnasium.make("CartPole-v1")
 
-GAMMA = 0.99 # Discount Factor
+GAMMA = 0.99  # Discount Factor
+
 
 class Policy(nn.Module):
-
-    def __init__(self, state_dim = 4, action_dim = 6):
+    def __init__(self, state_dim=4, action_dim=6):
         # Inherits from nn.Module, initializes Actor and Critic
         super().__init__()
 
         self.actor = nn.Sequential(
             nn.Linear(state_dim, 64),
             nn.Tanh(),
-            nn.Linear(64,64),
+            nn.Linear(64, 64),
             nn.Tanh,
-            nn.Linear(64,action_dim)
+            nn.Linear(64, action_dim),
         )
 
         self.critic = nn.Sequential(
             nn.Linear(state_dim, 64),
             nn.Tanh(),
-            nn.Linear(64,64),
+            nn.Linear(64, 64),
             nn.Tanh(),
-            nn.Linear(64,1)
+            nn.Linear(64, 1),
         )
 
     def get_value(self, state):
@@ -44,27 +44,28 @@ class Policy(nn.Module):
         probs = Normal(logits=logits)
         if action == None:
             action = probs.sample()
-        
+
         pass
 
 
-class Buffer():
+class Buffer:
     def __init__(self):
         # List of dict of a torch tensor
         self.buffer = []
 
     def add(self, state, action, reward, next_state, done):
-        self.buffer.append({"state": state,
-                                    "action": action,
-                                    "reward": reward,
-                                    "next_state": next_state,
-                                    "done": done})
-
+        self.buffer.append(
+            {
+                "state": state,
+                "action": action,
+                "reward": reward,
+                "next_state": next_state,
+                "done": done,
+            }
+        )
 
     def clear(self):
         self.buffer.clear()
-
-
 
 
 model = Policy()
@@ -86,7 +87,7 @@ def select_action(state):
     state = T.from_numpy(state).float().unsqueeze(0)
     actor_logits, state_value = model.forward(state)
 
-    m = Categorical(logits = actor_logits)
+    m = Categorical(logits=actor_logits)
 
     # Turns it into a discrete distribution, and samples from one of them?
     action = m.sample()
@@ -97,10 +98,12 @@ def select_action(state):
     # Returns the action
     return action.item()
 
+
 # Once I get a bunch of actions, eventually it will end.
 # Then, i can calculate the reward, predicted value
 def end_episode():
     pass
+
 
 # Advantage Estimation
 # Generalized Advantage Estimation
@@ -108,6 +111,7 @@ def end_episode():
 
 # PPO Update Logic
 # Calculate ratio, apply clip function, entropy bonus?
+
 
 def main():
     for i_episode in count(1):
@@ -123,10 +127,10 @@ def main():
             ep_reward += reward
             model.done.append(terminated or truncated)
             if terminated or truncated:
-                
                 break
-        
+
         # Now that episode is over, do backpropagation
-        
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     main()

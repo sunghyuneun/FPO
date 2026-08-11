@@ -1,0 +1,8 @@
+[tool.ruff]
+# Target Python version
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+# Explicitly ignore docstring warnings if you choose not to write them
+ignore = ["D100", "D101", "D102", "D103"] 
