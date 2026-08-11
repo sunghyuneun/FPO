@@ -9,4 +9,4 @@ I LOCK IN FR FR
 4. I implement FPO on humanoid in JAX.
 
 
-![N (the goat like lebron)](assets\N-Pokemon-Black-White.avif)
+![N (the goat like lebron)](/assets/N-Pokemon-Black-White.avif)
