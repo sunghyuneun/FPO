@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from itertools import count
-from torch.distributions.categorical import Normal
+from torch.distributions.normal import Normal
 from collections import namedtuple
 
 import gymnasium
