@@ -1,3 +1,4 @@
+--extra-index-url https://pytorch.org
 absl-py==2.5.0
 cloudpickle==3.1.2
 cuda-bindings==12.9.4
