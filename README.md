@@ -8,5 +8,5 @@ I LOCK IN FR FR
 3. I implement Flow matching policy optimization on half cheetah in JAX
 4. I implement FPO on humanoid in JAX.
 
-
+N (the goat like lebron) ((placeholder image))
 ![N (the goat like lebron)](/assets/N-Pokemon-Black-White.avif)
