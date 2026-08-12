@@ -22,7 +22,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          cd /tests
+          cd ./tests
           pytest -v
           echo "All tests passed successfully!"
 
