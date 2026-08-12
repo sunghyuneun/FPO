@@ -10,14 +10,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/actions-setup@v3 # Note: standard setup action
+        uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          pip install pytest
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Run Tests
         run: |
-          pytest
+          pytest -v
+          echo "All tests passed successfully!"
+
+      - name: Test failure notification
+        if: failure()
+        run: |
+          echo "Tests failed! Check the logs above for details."
+          exit 1
