@@ -31,7 +31,7 @@ def train():
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    env = gym.make(cfg["env_name"], render_mode="human")
+    env = gym.make(cfg["env_name"])
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
