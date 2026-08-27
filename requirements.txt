@@ -32,13 +32,13 @@ nvidia-nccl-cu12==2.29.3
 nvidia-nvjitlink-cu12==12.6.85
 nvidia-nvshmem-cu12==3.4.5
 nvidia-nvtx-cu12==12.6.77
-packaging==26.3
+packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1785888127/work
 pillow==12.2.0
-pip==26.2.1
 pluggy==1.6.0
 Pygments==2.20.0
 PyOpenGL==3.1.10
 pytest==9.1.1
+PyYAML==6.0.3
 setuptools==84.0.0
 sympy==1.14.0
 torch==2.13.0+cu126

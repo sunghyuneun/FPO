@@ -51,6 +51,10 @@ class Buffer:
             self.advantages.std() + 1e-8
         )
 
+    def clear(self):
+        # have to reset it all
+        self.count = 0
+
     def minibatch_generator(self, batch_size):
 
         random_indices = torch.randperm(self.size)
