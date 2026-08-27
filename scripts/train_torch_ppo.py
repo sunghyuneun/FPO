@@ -35,7 +35,7 @@ def train():
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
-    model = ActorCritic(state_dim, action_dim)
+    model = ActorCritic(state_dim, action_dim).to(device)
     optimizer = optim.Adam(
         model.parameters(), lr=float(cfg["learning_rate"]), eps=float(cfg["adam_eps"])
     )
