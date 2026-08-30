@@ -8,5 +8,7 @@ conda activate FPO
 
 # From the root path, run
 pip install -r requirements.txt
+# Run these two if you have an NVIDIA CUDA capable GPU
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 --no-cache-dir
+pip install -U "jax[cuda12]"
 ```
