@@ -3,5 +3,3 @@ ImageIO==2.37.4
 mujoco==3.11.0
 pytest==9.1.1
 PyYAML==6.0.3
-jax==0.11.1
-jaxlib=0.11.1
