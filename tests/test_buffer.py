@@ -42,7 +42,15 @@ def test_buffer():
     assert not torch.isnan(test_buffer.advantages).any(), "NaN detected in advantages!"
     print("GAE calculation test passed!")
 
-    # Test 2: Minibatch errors
+    # Test 2: Normalizing Advantages
+    test_buffer.normalize_advantages()
+    assert test_buffer.advantages.mean().abs() < 1e-5, "Mean of advantages not 0!"
+    assert (test_buffer.advantages.std() - 1) < 1e-5, (
+        "Standard Deviation of advantages not 1!"
+    )
+    print("Normalizing advantages test Passed!")
+
+    # Test 3: Minibatch errors
     generator = test_buffer.minibatch_generator(batch_size)
     states, actions, log_probs, returns, advantages = next(generator)
     assert states.shape == (batch_size, state_dim), (

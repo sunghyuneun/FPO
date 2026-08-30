@@ -1,136 +1,109 @@
 import os
-import torch as T
+import torch
+import yaml
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
-from itertools import count
-from torch.distributions.normal import Normal
-from collections import namedtuple
+import gymnasium as gym
+import sys
+from pathlib import Path
 
-import gymnasium
+target_dir = Path(__file__).resolve().parent.parent / "src/pytorch"
+sys.path.append(str(target_dir))
 
-env = gymnasium.make("CartPole-v1")
+from buffer import Buffer
+from network import ActorCritic
+from ppo_update import ppo_update
 
-GAMMA = 0.99  # Discount Factor
+
+def load_configs(config_path="../configs/ppo_torch_halfcheetah.yaml"):
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 
-class Policy(nn.Module):
-    def __init__(self, state_dim=4, action_dim=6):
-        # Inherits from nn.Module, initializes Actor and Critic
-        super().__init__()
+def train():
+    cfg = load_configs()
 
-        self.actor = nn.Sequential(
-            nn.Linear(state_dim, 64),
-            nn.Tanh(),
-            nn.Linear(64, 64),
-            nn.Tanh,
-            nn.Linear(64, action_dim),
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Running on device: {device}")
+
+    seed = cfg["seed"]
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    env = gym.make(cfg["env_name"])
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+
+    model = ActorCritic(state_dim, action_dim).to(device)
+    optimizer = optim.Adam(
+        model.parameters(), lr=float(cfg["learning_rate"]), eps=float(cfg["adam_eps"])
+    )
+    buffer = Buffer(cfg["buffer_size"], state_dim, action_dim, device)
+
+    # _ is info here, a dict
+    state, _ = env.reset(seed=seed)
+    state_tensor = torch.tensor(state, dtype=torch.float32, device=device)
+
+    global_step = 0
+    episode_reward = 0.0
+    completed_episode_rewards = []
+    num_updates = cfg["total_timesteps"] // cfg["batch_size"]
+
+    for update in range(1, num_updates + 1):
+        for step in range(cfg["batch_size"]):
+            global_step += 1
+
+            with torch.no_grad():
+                action, log_prob, entropy, value = model.get_action_value(
+                    state_tensor.unsqueeze(0)
+                )
+                env_action = np.clip(
+                    action.squeeze(0).cpu().numpy(),
+                    env.action_space.low,
+                    env.action_space.high,
+                )
+
+            next_state, reward, terminated, truncated, _ = env.step(env_action)
+            done = terminated or truncated
+            episode_reward += reward
+
+            buffer.add(
+                state_tensor,
+                action.squeeze(0),
+                value.squeeze(0),
+                log_prob.squeeze(0),
+                done,
+                reward,
+            )
+
+            if done:
+                completed_episode_rewards.append(episode_reward)
+                episode_reward = 0.0
+                next_state, _ = env.reset()
+
+            state_tensor = torch.tensor(next_state, dtype=torch.float32, device=device)
+
+        buffer.gae(cfg["gamma"], cfg["gae_lambda"])
+        buffer.normalize_advantages()
+        buffer.clear()
+
+        ppo_update(
+            model,
+            optimizer,
+            buffer,
+            cfg["batch_size"],
+            cfg["epoch_count"],
+            cfg["clip_eps"],
+            float(cfg["ent_coef"]),
         )
 
-        self.critic = nn.Sequential(
-            nn.Linear(state_dim, 64),
-            nn.Tanh(),
-            nn.Linear(64, 64),
-            nn.Tanh(),
-            nn.Linear(64, 1),
-        )
+    save_path = f"../models/{cfg['env_name']}_torch_ppo.pt"
+    torch.save(model.state_dict(), save_path)
+    print(f"Training finished, model saved to {save_path}")
 
-    def get_value(self, state):
-        return self.critic(state)
-
-    def get_action_and_value(self, state, action=None):
-        logits = self.actor(state)
-        probs = Normal(logits=logits)
-        if action == None:
-            action = probs.sample()
-
-        pass
-
-
-class Buffer:
-    def __init__(self):
-        # List of dict of a torch tensor
-        self.buffer = []
-
-    def add(self, state, action, reward, next_state, done):
-        self.buffer.append(
-            {
-                "state": state,
-                "action": action,
-                "reward": reward,
-                "next_state": next_state,
-                "done": done,
-            }
-        )
-
-    def clear(self):
-        self.buffer.clear()
-
-
-model = Policy()
-batches = Buffer()
-# Optimizer nudges the weights based on gradient of backpropagation...
-optimizer = optim.Adam(model.parameters(), lr=3e-2)
-
-
-# Memory Buffer
-
-# I need to hold those memories...?
-# Collects state, action, log-prob of actions, rewards, "done" flags?
-
-
-# Write logic that tells actor to pick an action based on state, steps, saves to buffer
-def select_action(state):
-    # Put the state in and find the stuff
-    batches.states.append(state)
-    state = T.from_numpy(state).float().unsqueeze(0)
-    actor_logits, state_value = model.forward(state)
-
-    m = Categorical(logits=actor_logits)
-
-    # Turns it into a discrete distribution, and samples from one of them?
-    action = m.sample()
-
-    batches.saved_actions.append(action)
-    batches.log_probs.append(m.log_prob(action))
-
-    # Returns the action
-    return action.item()
-
-
-# Once I get a bunch of actions, eventually it will end.
-# Then, i can calculate the reward, predicted value
-def end_episode():
-    pass
-
-
-# Advantage Estimation
-# Generalized Advantage Estimation
-
-
-# PPO Update Logic
-# Calculate ratio, apply clip function, entropy bonus?
-
-
-def main():
-    for i_episode in count(1):
-        state, _ = env.reset()
-        ep_reward = 0
-
-        for t in range(1, 2048):
-            action = select_action(state)
-
-            state, reward, terminated, truncated, _ = env.step(action)
-
-            batches.rewards.append(reward)
-            ep_reward += reward
-            model.done.append(terminated or truncated)
-            if terminated or truncated:
-                break
-
-        # Now that episode is over, do backpropagation
+    env.close()
 
 
 if __name__ == "__main__":
-    main()
+    train()

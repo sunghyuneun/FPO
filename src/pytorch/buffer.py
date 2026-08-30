@@ -45,18 +45,28 @@ class Buffer:
 
         self.returns = self.advantages + self.values
 
+    def normalize_advantages(self):
+        # Normalizes advantages for stability. #1e-8 for edge case where std dev = 0
+        self.advantages = (self.advantages - self.advantages.mean()) / (
+            self.advantages.std() + 1e-8
+        )
+
+    def clear(self):
+        # have to reset it all
+        self.count = 0
+
     def minibatch_generator(self, batch_size):
 
-        indices = torch.randperm(self.size)
+        random_indices = torch.randperm(self.size)
 
         for start_index in range(0, self.size, batch_size):
-            index = indices[start_index : start_index + batch_size]
+            indices = random_indices[start_index : start_index + batch_size]
             yield (
-                self.states[index],
-                self.actions[index],
-                self.log_probs[index],
-                self.returns[index],
-                self.advantages[index],
+                self.states[indices],
+                self.actions[indices],
+                self.log_probs[indices],
+                self.returns[indices],
+                self.advantages[indices],
             )
 
 
