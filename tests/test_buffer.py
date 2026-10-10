@@ -1,12 +1,11 @@
 import sys
 from pathlib import Path
 import torch
-import torch.optim as optim
 
 target_dir = Path(__file__).resolve().parent.parent / "src/pytorch"
 sys.path.append(str(target_dir))
 
-from buffer import Buffer
+from ppo_buffer import Buffer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Running on device: {device}")
