@@ -6,7 +6,7 @@ import torch.optim as optim
 target_dir = Path(__file__).resolve().parent.parent / "src/pytorch"
 sys.path.append(str(target_dir))
 
-from network import ActorCritic
+from ppo_network import ActorCritic
 
 
 def test_network():

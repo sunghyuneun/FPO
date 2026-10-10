@@ -6,8 +6,8 @@ import torch.optim as optim
 target_dir = Path(__file__).resolve().parent.parent / "src/pytorch"
 sys.path.append(str(target_dir))
 
-from buffer import Buffer
-from network import ActorCritic
+from ppo_buffer import Buffer
+from ppo_network import ActorCritic
 from ppo_update import ppo_update
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
