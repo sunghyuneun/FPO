@@ -7,6 +7,9 @@ class VectorActorCritic(nn.Module):
     def __init__(self, state_dim, action_dim):
         super().__init__()
 
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
         # 3 inputs: State, Noisy Action, Flow Time.
         # Supposedly Mish is better for flow matching
         self.VectorFieldActor = nn.Sequential(
@@ -16,6 +19,10 @@ class VectorActorCritic(nn.Module):
             nn.Mish(),
             nn.Linear(256, action_dim),
         )
+
+        # breaks if i don't have very small initial weights?
+        nn.init.uniform_(self.VectorFieldActor[-1].weight, -1e3, 1e-3)
+        nn.init.zeros_(self.VectorFieldActor[-1].bias)
 
         self.critic = nn.Sequential(
             nn.Linear(state_dim, 64),
@@ -43,7 +50,7 @@ class VectorActorCritic(nn.Module):
         v_target = actions - eps_i
         v_prediction = self.forward(states, x_t, t)
 
-        return torch.sum((v_prediction - v_target) ** 2, dim=-1)
+        return torch.mean((v_prediction - v_target) ** 2, dim=-1)
 
     def sample_action(self, state, num_steps=10):
         batch_size = state.shape[0]
@@ -57,6 +64,9 @@ class VectorActorCritic(nn.Module):
             t = torch.full((batch_size, 1), i * dt, device=device)
             velocity = self.forward(state, x_t, t)
             x_t = x_t + velocity * dt
+
+            # might break if i don't clamp
+            x_t = torch.clamp(x_t, -5.0, 5.0)
 
         return x_t
 

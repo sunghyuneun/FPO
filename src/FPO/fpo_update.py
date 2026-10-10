@@ -15,7 +15,7 @@ def FPO_Update(model, optimizer, buffer, batch_size, epoch_count, clip_epsilon):
             advantages,
         ) in buffer.minibatch_generator(batch_size):
             # First one should be new_actions but unused for now
-            new_actions, new_values = model.get_action_value(states, actions)
+            new_actions, new_values = model.get_action_value(states)
 
             new_loss = model.cfm_loss(states, actions)
             with torch.no_grad():
