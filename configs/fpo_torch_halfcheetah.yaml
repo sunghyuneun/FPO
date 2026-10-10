@@ -1,0 +1,11 @@
+env_name: "HalfCheetah-v5"
+total_timesteps: 1_000_000
+seed: 1311
+buffer_size: 2048      # Rollout length per update
+batch_size: 64         # Mini-batch size for PPO epochs
+epoch_count: 10
+learning_rate: 3.0e-4
+gamma: 0.99            # Discount factor
+gae_lambda: 0.95       # GAE smoothing parameter
+clip_eps: 0.2          # PPO clipping parameter
+adam_eps: 1.0e-5       # Epsilon for Adam optimizer

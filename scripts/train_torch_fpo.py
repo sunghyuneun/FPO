@@ -6,15 +6,15 @@ import gymnasium as gym
 import sys
 from pathlib import Path
 
-target_dir = Path(__file__).resolve().parent.parent / "src/PPO"
+target_dir = Path(__file__).resolve().parent.parent / "src/FPO"
 sys.path.append(str(target_dir))
 
-from ppo_buffer import Buffer
-from ppo_network import ActorCritic
-from ppo_update import ppo_update
+from fpo_buffer import FPO_Buffer
+from fpo_network import VectorActorCritic
+from fpo_update import FPO_Update
 
 
-def load_configs(config_path="../configs/ppo_torch_halfcheetah.yaml"):
+def load_configs(config_path="../configs/fpo_torch_halfcheetah.yaml"):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
@@ -33,11 +33,11 @@ def train():
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
-    model = ActorCritic(state_dim, action_dim).to(device)
+    model = VectorActorCritic(state_dim, action_dim).to(device)
     optimizer = optim.Adam(
         model.parameters(), lr=float(cfg["learning_rate"]), eps=float(cfg["adam_eps"])
     )
-    buffer = Buffer(cfg["buffer_size"], state_dim, action_dim, device)
+    buffer = FPO_Buffer(cfg["buffer_size"], state_dim, action_dim, device)
 
     # _ is info here, a dict
     state, _ = env.reset(seed=seed)
@@ -53,9 +53,7 @@ def train():
             global_step += 1
 
             with torch.no_grad():
-                action, log_prob, entropy, value = model.get_action_value(
-                    state_tensor.unsqueeze(0)
-                )
+                action, value = model.get_action_value(state_tensor.unsqueeze(0))
                 env_action = np.clip(
                     action.squeeze(0).cpu().numpy(),
                     env.action_space.low,
@@ -70,7 +68,6 @@ def train():
                 state_tensor,
                 action.squeeze(0),
                 value.squeeze(0),
-                log_prob.squeeze(0),
                 done,
                 reward,
             )
@@ -86,17 +83,16 @@ def train():
         buffer.normalize_advantages()
         buffer.clear()
 
-        ppo_update(
+        FPO_Update(
             model,
             optimizer,
             buffer,
             cfg["batch_size"],
             cfg["epoch_count"],
             cfg["clip_eps"],
-            float(cfg["ent_coef"]),
         )
 
-    save_path = f"../models/{cfg['env_name']}_torch_ppo.pt"
+    save_path = f"../models/{cfg['env_name']}_torch_fpo.pt"
     torch.save(model.state_dict(), save_path)
     print(f"Training finished, model saved to {save_path}")
 

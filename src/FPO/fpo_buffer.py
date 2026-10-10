@@ -1,12 +1,11 @@
 import torch
 
 
-class Buffer:
+class FPO_Buffer:
     def __init__(self, size, state_dim, action_dim, device):
         self.states = torch.zeros((size, state_dim), dtype=torch.float32).to(device)
         self.actions = torch.zeros((size, action_dim), dtype=torch.float32).to(device)
         self.values = torch.zeros(size, dtype=torch.float32).to(device)
-        self.log_probs = torch.zeros(size, dtype=torch.float32).to(device)
         self.dones = torch.zeros(size, dtype=torch.float32).to(device)
         self.rewards = torch.zeros(size, dtype=torch.float32).to(device)
         self.returns = torch.zeros(size, dtype=torch.float32).to(device)
@@ -15,11 +14,10 @@ class Buffer:
         self.count = 0
         self.size = size
 
-    def add(self, state, action, value, log_prob, done, reward):
+    def add(self, state, action, value, done, reward):
         self.states[self.count] = state
         self.actions[self.count] = action
         self.values[self.count] = value
-        self.log_probs[self.count] = log_prob
         self.dones[self.count] = done
         self.rewards[self.count] = reward
 
@@ -64,7 +62,6 @@ class Buffer:
             yield (
                 self.states[indices],
                 self.actions[indices],
-                self.log_probs[indices],
                 self.returns[indices],
                 self.advantages[indices],
             )
