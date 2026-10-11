@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 import torch
 
-target_dir = Path(__file__).resolve().parent.parent / "src/pytorch"
+target_dir = Path(__file__).resolve().parent.parent / "src/PPO"
 sys.path.append(str(target_dir))
 
 from ppo_buffer import Buffer

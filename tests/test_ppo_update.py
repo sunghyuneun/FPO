@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 import torch.optim as optim
 
-target_dir = Path(__file__).resolve().parent.parent / "src/pytorch"
+target_dir = Path(__file__).resolve().parent.parent / "src/PPO"
 sys.path.append(str(target_dir))
 
 from ppo_buffer import Buffer

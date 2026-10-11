@@ -29,6 +29,9 @@ def train():
     torch.manual_seed(seed)
     np.random.seed(seed)
 
+    checkpoint_dir = Path("../models/PPO/checkpoints")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
     env = gym.make(cfg["env_name"])
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
@@ -95,6 +98,11 @@ def train():
             cfg["clip_eps"],
             float(cfg["ent_coef"]),
         )
+
+        if update % 50000 == 0:
+            checkpoint_path = checkpoint_dir / f"{cfg['env_name']}_update_{update}.pt"
+            torch.save(model.state_dict(), checkpoint_path)
+            print(f"Checkout saved at update {update} to {checkpoint_path}")
 
     save_path = f"../models/{cfg['env_name']}_torch_ppo.pt"
     torch.save(model.state_dict(), save_path)
